@@ -4,35 +4,100 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Capture Multiple Images and Convert to PDF</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+        #video {
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        #captureBtn, #downloadPdfBtn {
+            margin: 10px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: #fff;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        #captureBtn:hover, #downloadPdfBtn:hover {
+            background-color: #0056b3;
+        }
+        #images {
+            margin-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+        #images img {
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            max-width: 300px;
+            max-height: 200px;
+            object-fit: cover;
+        }
+        #pdfName {
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+        }
+    </style>
 </head>
 <body>
     <h1>Capture Multiple Images and Convert to PDF</h1>
-    
+
     <!-- Video Element to show the camera feed -->
     <video id="video" width="320" height="240" autoplay></video>
     <button id="captureBtn">Capture Image</button>
     <canvas id="canvas" style="display:none;"></canvas>
-    
+
     <!-- Image preview -->
     <div id="images"></div>
-    
+
     <input type="text" id="pdfName" placeholder="Enter PDF name" />
     <button id="downloadPdfBtn">Download PDF</button>
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.5.0-beta4/html2canvas.min.js"></script>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.3.1/jspdf.umd.min.js"></script>
     <script>
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
         const imagesDiv = document.getElementById('images');
 
+        // Request access to the user's camera
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                video.srcObject = stream;
+            })
+            .catch(err => {
+                console.error("Error accessing camera: " + err);
+                alert("Error accessing camera: " + err.message);
+            });
+
         // Capture the image from the video feed
         document.getElementById('captureBtn').addEventListener('click', () => {
+            // Draw the image from the video onto the canvas
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
             const context = canvas.getContext('2d');
             context.drawImage(video, 0, 0, canvas.width, canvas.height);
-            
+
+            // Create a new img element and add it to the images div
             const img = document.createElement('img');
             img.src = canvas.toDataURL('image/png');
             imagesDiv.appendChild(img);
@@ -44,6 +109,11 @@
             const pdf = new jsPDF();
             const pdfName = document.getElementById('pdfName').value || 'document';
             const images = document.querySelectorAll('#images img');
+
+            if (images.length === 0) {
+                alert("No images to convert to PDF.");
+                return;
+            }
 
             images.forEach((img, i) => {
                 if (i > 0) pdf.addPage();
