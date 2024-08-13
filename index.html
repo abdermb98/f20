@@ -3,23 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test Camera Access</title>
+    <title>Capture Multiple Images and Convert to PDF</title>
 </head>
 <body>
-    <h1>Camera Access Test</h1>
-    <video id="video" width="320" height="240" autoplay></video>
+    <h1>Capture Multiple Images and Convert to PDF</h1>
     
+    <!-- Video Element to show the camera feed -->
+    <video id="video" width="320" height="240" autoplay></video>
+    <button id="captureBtn">Capture Image</button>
+    <canvas id="canvas" style="display:none;"></canvas>
+    
+    <!-- Image preview -->
+    <div id="images"></div>
+    
+    <input type="text" id="pdfName" placeholder="Enter PDF name" />
+    <button id="downloadPdfBtn">Download PDF</button>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.5.0-beta4/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.3.1/jspdf.umd.min.js"></script>
     <script>
         const video = document.getElementById('video');
-        
-        navigator.mediaDevices.getUserMedia({ video: true })
-            .then(stream => {
-                video.srcObject = stream;
-            })
-            .catch(err => {
-                console.error("Error accessing camera: " + err);
-                alert("Error accessing camera: " + err);
+        const canvas = document.getElementById('canvas');
+        const imagesDiv = document.getElementById('images');
+
+        // Capture the image from the video feed
+        document.getElementById('captureBtn').addEventListener('click', () => {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const context = canvas.getContext('2d');
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            const img = document.createElement('img');
+            img.src = canvas.toDataURL('image/png');
+            imagesDiv.appendChild(img);
+        });
+
+        // Convert the captured images to PDF and download
+        document.getElementById('downloadPdfBtn').addEventListener('click', () => {
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF();
+            const pdfName = document.getElementById('pdfName').value || 'document';
+            const images = document.querySelectorAll('#images img');
+
+            images.forEach((img, i) => {
+                if (i > 0) pdf.addPage();
+                pdf.addImage(img.src, 'PNG', 10, 10, 180, 160);
             });
+
+            pdf.save(${pdfName}.pdf);
+        });
     </script>
 </body>
 </html>
