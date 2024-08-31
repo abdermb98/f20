@@ -3,125 +3,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Capture Multiple Images and Convert to PDF</title>
+    <title>توليد محتوى باستخدام OpenAI API</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f0f0f0;
+            margin: 20px;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
         h1 {
-            margin-bottom: 20px;
+            text-align: center;
+            color: #333;
         }
-        #video {
-            border: 2px solid #ccc;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
         }
-        #captureBtn, #downloadPdfBtn {
-            margin: 10px;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
+        button {
+            display: block;
+            width: 100%;
+            padding: 10px;
             background-color: #007bff;
-            color: #fff;
+            color: white;
+            border: none;
+            border-radius: 4px;
             cursor: pointer;
-            font-size: 16px;
         }
-        #captureBtn:hover, #downloadPdfBtn:hover {
+        button:hover {
             background-color: #0056b3;
         }
-        #images {
+        .result {
             margin-top: 20px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            justify-content: center;
-        }
-        #images img {
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-            max-width: 300px;
-            max-height: 200px;
-            object-fit: cover;
-        }
-        #pdfName {
-            padding: 10px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            font-size: 16px;
         }
     </style>
 </head>
 <body>
-    <h1>Capture Multiple Images and Convert to PDF</h1>
+    <div class="container">
+        <h1>توليد محتوى باستخدام OpenAI API</h1>
+        <input type="text" id="inputText" placeholder="أدخل نصًا لتوليد المحتوى">
+        <button onclick="generateContent()">توليد المحتوى</button>
+        <div class="result" id="resultContainer"></div>
+    </div>
 
-    <!-- Video Element to show the camera feed -->
-    <video id="video" width="320" height="240" autoplay></video>
-    <button id="captureBtn">Capture Image</button>
-    <canvas id="canvas" style="display:none;"></canvas>
-
-    <!-- Image preview -->
-    <div id="images"></div>
-
-    <input type="text" id="pdfName" placeholder="Enter PDF name" />
-    <button id="downloadPdfBtn">Download PDF</button>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.3.1/jspdf.umd.min.js"></script>
     <script>
-        const video = document.getElementById('video');
-        const canvas = document.getElementById('canvas');
-        const imagesDiv = document.getElementById('images');
+        async function generateContent() {
+            const inputText = document.getElementById('inputText').value;
+            const resultContainer = document.getElementById('resultContainer');
 
-        // Request access to the user's camera
-        navigator.mediaDevices.getUserMedia({ video: true })
-            .then(stream => {
-                video.srcObject = stream;
-            })
-            .catch(err => {
-                console.error("Error accessing camera: " + err);
-                alert("Error accessing camera: " + err.message);
-            });
-
-        // Capture the image from the video feed
-        document.getElementById('captureBtn').addEventListener('click', () => {
-            // Draw the image from the video onto the canvas
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            const context = canvas.getContext('2d');
-            context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-            // Create a new img element and add it to the images div
-            const img = document.createElement('img');
-            img.src = canvas.toDataURL('image/png');
-            imagesDiv.appendChild(img);
-        });
-
-        // Convert the captured images to PDF and download
-        document.getElementById('downloadPdfBtn').addEventListener('click', () => {
-            const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF();
-            const pdfName = document.getElementById('pdfName').value || 'document';
-            const images = document.querySelectorAll('#images img');
-
-            if (images.length === 0) {
-                alert("No images to convert to PDF.");
+            if (inputText.trim() === '') {
+                resultContainer.innerHTML = '<p style="color: red;">يرجى إدخال نص صحيح.</p>';
                 return;
             }
 
-            images.forEach((img, i) => {
-                if (i > 0) pdf.addPage();
-                pdf.addImage(img.src, 'PNG', 10, 10, 180, 160);
-            });
+            const apiKey = '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'; // استبدل YOUR_API_KEY_HERE بمفتاح API الخاص بك
+            const requestData = {
+                model: 'text-davinci-003',
+                prompt: inputText,
+                max_tokens: 150,
+                temperature: 0.7
+            };
 
-            pdf.save(${pdfName}.pdf);
-        });
+            try {
+                const response = await fetch('https://api.openai.com/v1/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify(requestData)
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`API request failed: ${response.status} ${response.statusText} - ${errorText}`);
+                }
+
+                const data = await response.json();
+                const generatedText = data.choices[0].text;
+
+                resultContainer.innerHTML = `<p>${generatedText}</p>`;
+            } catch (error) {
+                console.error('Error generating content:', error);
+                resultContainer.innerHTML = `<p style="color: red;">حدث خطأ أثناء توليد المحتوى: ${error.message}</p>`;
+            }
+        }
     </script>
 </body>
 </html>
