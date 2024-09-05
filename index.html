@@ -9,70 +9,21 @@
             font-family: Arial, sans-serif;
             text-align: center;
             padding: 20px;
-            background: linear-gradient(135deg, #e0f7fa, #b2ebf2);
-            margin: 0;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
         }
-
-        h1 {
-            color: #00796b;
-            margin-bottom: 20px;
-            font-size: 2.5rem;
-            font-weight: 700;
-        }
-
         video, canvas {
-            border: 2px solid #00796b;
-            border-radius: 10px;
-            margin: 10px 0;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            border: 1px solid #ddd;
+            margin-top: 10px;
         }
-
         button {
             margin-top: 10px;
             padding: 10px 20px;
             font-size: 16px;
             cursor: pointer;
-            background-color: #00796b;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            transition: background-color 0.3s, transform 0.3s;
         }
-
-        button:hover {
-            background-color: #004d40;
-            transform: scale(1.05);
-        }
-
-        button:active {
-            transform: scale(0.95);
-        }
-
         #message {
             margin-top: 20px;
-            font-size: 1.2rem;
-            color: #d32f2f;
-            transition: opacity 0.5s;
-        }
-
-        .success {
-            color: #388e3c;
-        }
-
-        .error {
-            color: #d32f2f;
-        }
-
-        @media (max-width: 600px) {
-            video, canvas {
-                width: 100%;
-                max-width: 100%;
-            }
+            font-size: 18px;
+            color: red;
         }
     </style>
 </head>
@@ -109,26 +60,24 @@
         upload.addEventListener('click', () => {
             const imageData = canvas.toDataURL('image/png'); // الحصول على بيانات الصورة بصيغة Base64
             fetch('https://script.google.com/macros/s/AKfycbwE_DawxbaiNgAOtlZfNZ3d-ZOGLr-u45Pq5IMdoe0e03KqBA41ZVIH-4U5WTK6VFnt6g/exec', {
-                method: 'POST',
-                body: JSON.stringify({ image: imageData }),
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            })
+    method: 'POST',
+    body: JSON.stringify({ image: imageData }),
+    headers: {
+        'Content-Type': 'application/json'
+    },
+    mode: 'no-cors' // الوضع الموصى به للاختبار فقط
+})
             .then(response => response.json())
             .then(data => {
                 if (data.status === 'success') {
                     document.getElementById('message').innerText = "تم رفع الصورة بنجاح!";
-                    document.getElementById('message').className = 'success';
                 } else {
                     document.getElementById('message').innerText = "خطأ في رفع الصورة: " + data.message;
-                    document.getElementById('message').className = 'error';
                 }
             })
             .catch(error => {
                 console.error('خطأ:', error);
                 document.getElementById('message').innerText = "خطأ في رفع الصورة.";
-                document.getElementById('message').className = 'error';
             });
         });
     </script>
