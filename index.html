@@ -1,122 +1,114 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Upload Image to Google Sheets</title>
+    <title>تحميل الصورة إلى Google Sheets</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
             font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #f4f4f4;
-        }
-
-        .container {
             text-align: center;
-            background-color: white;
             padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            background: linear-gradient(135deg, #e0f7fa, #b2ebf2);
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
 
         h1 {
+            color: #00796b;
             margin-bottom: 20px;
-            color: #004d40;
+            font-size: 2.5rem;
+            font-weight: 700;
         }
 
-        .camera {
-            margin-bottom: 20px;
-        }
-
-        video {
-            width: 320px;
-            height: 240px;
+        video, canvas {
+            border: 2px solid #00796b;
             border-radius: 10px;
-            border: 2px solid #004d40;
+            margin: 10px 0;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
 
-        canvas {
-            display: none;
-        }
-
-        .button {
-            background-color: #000000;
+        button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #00796b;
             color: white;
             border: none;
-            padding: 10px 20px;
-            margin: 10px;
             border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s, transform 0.3s;
         }
 
-        .button:hover {
-            background-color: #00ffe1;
+        button:hover {
+            background-color: #004d40;
+            transform: scale(1.05);
+        }
+
+        button:active {
+            transform: scale(0.95);
         }
 
         #message {
             margin-top: 20px;
+            font-size: 1.2rem;
+            color: #d32f2f;
+            transition: opacity 0.5s;
+        }
+
+        .success {
+            color: #388e3c;
+        }
+
+        .error {
+            color: #d32f2f;
+        }
+
+        @media (max-width: 600px) {
+            video, canvas {
+                width: 100%;
+                max-width: 100%;
+            }
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h1>Upload Image to Google Sheets</h1>
-
-        <!-- Video stream for camera capture -->
-        <div class="camera">
-            <video id="video" autoplay></video>
-            <button id="snap" class="button">Capture Photo</button>
-        </div>
-
-        <!-- Canvas for displaying captured image -->
-        <canvas id="canvas"></canvas>
-
-        <!-- Upload button -->
-        <button id="upload" class="button" disabled>Upload to Google Sheets</button>
-
-        <p id="message"></p>
-    </div>
+    <h1>تحميل الصورة إلى Google Sheets</h1>
+    <video id="video" width="320" height="240" autoplay></video>
+    <button id="snap">التقاط صورة</button>
+    <canvas id="canvas" width="320" height="240"></canvas>
+    <button id="upload">تحميل إلى Google Sheets</button>
+    <p id="message"></p>
 
     <script>
-        // Access the camera
+        // الوصول إلى الكاميرا
         const video = document.getElementById('video');
         navigator.mediaDevices.getUserMedia({ video: true })
             .then(stream => {
                 video.srcObject = stream;
             })
             .catch(err => {
-                console.error("Error accessing camera: " + err);
+                console.error("خطأ في الوصول إلى الكاميرا: " + err);
             });
 
-        // Capture the image
+        // التقاط الصورة
         const canvas = document.getElementById('canvas');
         const context = canvas.getContext('2d');
         const snap = document.getElementById('snap');
-        const upload = document.getElementById('upload');
-
         snap.addEventListener('click', () => {
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            context.drawImage(video, 0, 0, canvas.width, canvas.height);
-            document.getElementById('canvas').style.display = 'block'; // Show the captured image
-            upload.disabled = false; // Enable upload button after capturing photo
+            context.drawImage(video, 0, 0, 320, 240);
         });
 
-        // Upload to Google Sheets
+        // رفع الصورة إلى Google Sheets
+        const upload = document.getElementById('upload');
         upload.addEventListener('click', () => {
-            const imageData = canvas.toDataURL('image/png'); // Get Base64 image data
-            fetch('https://script.google.com/macros/s/AKfycbxWcBoEWUqDK9csm5VOG4fJvzCAV9im7O4aFD2jZVX2_2terxJYKr1gRx2-TFa12GL66Q/exec', {
+            const imageData = canvas.toDataURL('image/png'); // الحصول على بيانات الصورة بصيغة Base64
+            fetch('https://script.google.com/macros/s/AKfycbwE_DawxbaiNgAOtlZfNZ3d-ZOGLr-u45Pq5IMdoe0e03KqBA41ZVIH-4U5WTK6VFnt6g/exec', {
                 method: 'POST',
                 body: JSON.stringify({ image: imageData }),
                 headers: {
@@ -126,14 +118,17 @@
             .then(response => response.json())
             .then(data => {
                 if (data.status === 'success') {
-                    document.getElementById('message').innerText = "Image uploaded successfully!";
+                    document.getElementById('message').innerText = "تم رفع الصورة بنجاح!";
+                    document.getElementById('message').className = 'success';
                 } else {
-                    document.getElementById('message').innerText = "Error uploading image: " + data.message;
+                    document.getElementById('message').innerText = "خطأ في رفع الصورة: " + data.message;
+                    document.getElementById('message').className = 'error';
                 }
             })
             .catch(error => {
-                console.error('Error:', error);
-                document.getElementById('message').innerText = "Error uploading image.";
+                console.error('خطأ:', error);
+                document.getElementById('message').innerText = "خطأ في رفع الصورة.";
+                document.getElementById('message').className = 'error';
             });
         });
     </script>
