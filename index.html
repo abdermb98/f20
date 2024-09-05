@@ -3,56 +3,138 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Camera Capture</title>
+    <title>Image Upload to Google Sheets</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            text-align: center;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            color: #004d40;
+        }
+
+        .camera {
+            margin-bottom: 20px;
+        }
+
+        video {
+            width: 320px;
+            height: 240px;
+            border-radius: 10px;
+            border: 2px solid #004d40;
+        }
+
+        canvas {
+            display: none;
+        }
+
+        .button {
+            background-color: #004d40;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .button:hover {
+            background-color: #00695c;
+        }
+
+        #message {
+            margin-top: 20px;
+        }
+    </style>
 </head>
 <body>
 
-<h1>Capture Image</h1>
-<video id="video" width="320" height="240" autoplay></video>
-<button id="snap">Take Photo</button>
-<canvas id="canvas" width="320" height="240"></canvas>
-<button id="upload">Upload to Google Sheets</button>
+    <div class="container">
+        <h1>Upload Image to Google Sheets</h1>
 
-<script>
-// Access the camera
-const video = document.getElementById('video');
+        <!-- Video stream for camera capture -->
+        <div class="camera">
+            <video id="video" autoplay></video>
+            <button id="snap" class="button">Capture Photo</button>
+        </div>
 
-navigator.mediaDevices.getUserMedia({ video: true })
-    .then(stream => {
-        video.srcObject = stream;
-    })
-    .catch(err => {
-        console.error("Error accessing camera: " + err);
-    });
+        <!-- Canvas for displaying captured image -->
+        <canvas id="canvas" class="hidden"></canvas>
 
-// Capture the image
-const canvas = document.getElementById('canvas');
-const context = canvas.getContext('2d');
-const snap = document.getElementById('snap');
+        <!-- Upload button -->
+        <button id="upload" class="button">Upload to Google Sheets</button>
 
-snap.addEventListener('click', () => {
-    context.drawImage(video, 0, 0, 320, 240);
-});
+        <p id="message"></p>
+    </div>
 
-// Upload to Google Sheets
-document.getElementById('upload').addEventListener('click', () => {
-    const imageData = canvas.toDataURL('image/png'); // Get Base64 image data
-    fetch('https://script.google.com/macros/s/AKfycbzTn7AOdjYX3dTgxcdv2wRIXtnBvNW6rx819Vt37h3_1mfYRYkF-cNU4VcovbhTFmgxsw/exec', {
-        method: 'POST',
-        body: JSON.stringify({ image: imageData }),
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        alert("Image uploaded successfully");
-    })
-    .catch(error => {
-        console.error('Error:', error);
-    });
-});
-</script>
+    <script>
+        // Access the camera
+        const video = document.getElementById('video');
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                video.srcObject = stream;
+            })
+            .catch(err => {
+                console.error("Error accessing camera: " + err);
+            });
+
+        // Capture the image
+        const canvas = document.getElementById('canvas');
+        const context = canvas.getContext('2d');
+        const snap = document.getElementById('snap');
+
+        snap.addEventListener('click', () => {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            document.getElementById('canvas').style.display = 'block'; // Show the captured image
+        });
+
+        // Upload to Google Sheets
+        document.getElementById('upload').addEventListener('click', () => {
+            const imageData = canvas.toDataURL('image/png'); // Get Base64 image data
+            fetch('https://script.google.com/macros/s/AKfycbzH5yWXPiSFkxsm7CWIIe3O5FrmQFXs4JtN-sIFkNBuwKjDXQWvLPYQM9_Mgf0VnsaLEg/exec', {
+                method: 'POST',
+                body: JSON.stringify({ image: imageData }),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    document.getElementById('message').innerText = "Image uploaded successfully!";
+                } else {
+                    document.getElementById('message').innerText = "Error uploading image: " + data.message;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('message').innerText = "Error uploading image.";
+            });
+        });
+    </script>
 
 </body>
 </html>
