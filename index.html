@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image Upload to Google Sheets</title>
+    <title>Upload Image to Google Sheets</title>
     <style>
         * {
             margin: 0;
@@ -49,7 +49,7 @@
         }
 
         .button {
-            background-color: #004d40;
+            background-color: #000000;
             color: white;
             border: none;
             padding: 10px 20px;
@@ -60,7 +60,7 @@
         }
 
         .button:hover {
-            background-color: #00695c;
+            background-color: #00ffe1;
         }
 
         #message {
@@ -80,10 +80,10 @@
         </div>
 
         <!-- Canvas for displaying captured image -->
-        <canvas id="canvas" class="hidden"></canvas>
+        <canvas id="canvas"></canvas>
 
         <!-- Upload button -->
-        <button id="upload" class="button">Upload to Google Sheets</button>
+        <button id="upload" class="button" disabled>Upload to Google Sheets</button>
 
         <p id="message"></p>
     </div>
@@ -103,18 +103,20 @@
         const canvas = document.getElementById('canvas');
         const context = canvas.getContext('2d');
         const snap = document.getElementById('snap');
+        const upload = document.getElementById('upload');
 
         snap.addEventListener('click', () => {
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
             context.drawImage(video, 0, 0, canvas.width, canvas.height);
             document.getElementById('canvas').style.display = 'block'; // Show the captured image
+            upload.disabled = false; // Enable upload button after capturing photo
         });
 
         // Upload to Google Sheets
-        document.getElementById('upload').addEventListener('click', () => {
+        upload.addEventListener('click', () => {
             const imageData = canvas.toDataURL('image/png'); // Get Base64 image data
-            fetch('https://script.google.com/macros/s/AKfycbzH5yWXPiSFkxsm7CWIIe3O5FrmQFXs4JtN-sIFkNBuwKjDXQWvLPYQM9_Mgf0VnsaLEg/exec', {
+            fetch('https://script.google.com/macros/s/AKfycbxWcBoEWUqDK9csm5VOG4fJvzCAV9im7O4aFD2jZVX2_2terxJYKr1gRx2-TFa12GL66Q/exec', {
                 method: 'POST',
                 body: JSON.stringify({ image: imageData }),
                 headers: {
